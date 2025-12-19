@@ -48,7 +48,7 @@ pip install uv
 echo "=== Installing PyTorch with CUDA $CUDA_VERSION via uv (PyTorch index: $PYTORCH_CUDA) ==="
 cd "$SCRIPT_DIR"
 uv pip install --extra-index-url https://download.pytorch.org/whl/$PYTORCH_CUDA \
-    torch>=2.1.2 torchvision torchaudio
+    "torch>=2.1.2" torchvision torchaudio
 
 echo "=== Installing all other dependencies via uv ==="
 uv pip install -e .

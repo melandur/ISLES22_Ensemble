@@ -26,7 +26,8 @@ dependencies = [
     
     # === Medical Imaging ===
     "nibabel>=5.0.0",
-    "SimpleITK>=2.2.1",
+    # Note: SimpleITK-SimpleElastix includes SimpleITK functionality plus Elastix registration
+    # Do NOT install both SimpleITK and SimpleITK-SimpleElastix - they conflict!
     "SimpleITK-SimpleElastix",
     "MedPy==0.4.0",
     "pydicom==2.3.0",
