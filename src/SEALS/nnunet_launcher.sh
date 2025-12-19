@@ -4,76 +4,60 @@
 RAW_DATA_DIR=$1
 
 # Suppressing output of environment variable exports
-export nnUNet_raw_data_base="data/nnUNet_raw_data_base" >/dev/null 2>&1
+export nnUNet_raw="data/nnUNet_raw_data_base/nnUNet_raw_data" >/dev/null 2>&1
 export nnUNet_preprocessed="data/nnUNet_preprocessed" >/dev/null 2>&1
-export RESULTS_FOLDER="../../weights/SEALS/nnUNet_trained_models" >/dev/null 2>&1
-export nnUNet_n_proc_DA=24 >/dev/null 2>&1
+export nnUNet_results="../../weights/SEALS/nnUNet_trained_models" >/dev/null 2>&1
 
-python nnunet/dataset_conversion/Task500_Ischemic_Stroke_Test.py --raw_data_dir "$RAW_DATA_DIR" >/dev/null 2>&1
+python dataset_conversion/Task500_Ischemic_Stroke_Test.py --raw_data_dir "$RAW_DATA_DIR" >/dev/null 2>&1
 
 CUDA_VISIBLE_DEVICES=0 \
-nnUNet_predict \
-               -i $nnUNet_raw_data_base/nnUNet_raw_data/Task500_Ischemic_Stroke_Test/imagesTs/ \
+nnUNetv2_predict_from_modelfolder \
+               -i $nnUNet_raw/Task500_Ischemic_Stroke_Test/imagesTs/ \
                -o test_result/preliminary_phase/fold0 \
-               -t 12 \
-               -tr nnUNetTrainerV2_DDP \
-               -m 3d_fullres \
+               -m $nnUNet_results/nnUNet/3d_fullres/Task500_Ischemic_Stroke_Test/nnUNetTrainer__nnUNetPlans__3d_fullres \
                -f 0 \
-               -z \
-               --overwrite_existing \
-               --disable_postprocessing \
+               --save_probabilities \
+               --disable_tta \
                >/dev/null 2>&1
 
 CUDA_VISIBLE_DEVICES=0 \
-nnUNet_predict \
-               -i $nnUNet_raw_data_base/nnUNet_raw_data/Task500_Ischemic_Stroke_Test/imagesTs/ \
+nnUNetv2_predict_from_modelfolder \
+               -i $nnUNet_raw/Task500_Ischemic_Stroke_Test/imagesTs/ \
                -o test_result/preliminary_phase/fold1 \
-               -t 12 \
-               -tr nnUNetTrainerV2_DDP \
-               -m 3d_fullres \
+               -m $nnUNet_results/nnUNet/3d_fullres/Task500_Ischemic_Stroke_Test/nnUNetTrainer__nnUNetPlans__3d_fullres \
                -f 1 \
-               -z \
-               --overwrite_existing \
-               --disable_postprocessing \
+               --save_probabilities \
+               --disable_tta \
                >/dev/null 2>&1
 
 CUDA_VISIBLE_DEVICES=0 \
-nnUNet_predict \
-               -i $nnUNet_raw_data_base/nnUNet_raw_data/Task500_Ischemic_Stroke_Test/imagesTs/ \
+nnUNetv2_predict_from_modelfolder \
+               -i $nnUNet_raw/Task500_Ischemic_Stroke_Test/imagesTs/ \
                -o test_result/preliminary_phase/fold2 \
-               -t 12 \
-               -tr nnUNetTrainerV2_DDP \
-               -m 3d_fullres \
+               -m $nnUNet_results/nnUNet/3d_fullres/Task500_Ischemic_Stroke_Test/nnUNetTrainer__nnUNetPlans__3d_fullres \
                -f 2 \
-               -z \
-               --overwrite_existing \
-               --disable_postprocessing \
+               --save_probabilities \
+               --disable_tta \
                >/dev/null 2>&1
 
 CUDA_VISIBLE_DEVICES=0 \
-nnUNet_predict \
-               -i $nnUNet_raw_data_base/nnUNet_raw_data/Task500_Ischemic_Stroke_Test/imagesTs/ \
+nnUNetv2_predict_from_modelfolder \
+               -i $nnUNet_raw/Task500_Ischemic_Stroke_Test/imagesTs/ \
                -o test_result/preliminary_phase/fold3 \
-               -t 12 \
-               -tr nnUNetTrainerV2_DDP \
-               -m 3d_fullres \
+               -m $nnUNet_results/nnUNet/3d_fullres/Task500_Ischemic_Stroke_Test/nnUNetTrainer__nnUNetPlans__3d_fullres \
                -f 3 \
-               -z \
-               --overwrite_existing \
-               --disable_postprocessing \
+               --save_probabilities \
+               --disable_tta \
                >/dev/null 2>&1
 
 CUDA_VISIBLE_DEVICES=0 \
-nnUNet_predict \
-               -i $nnUNet_raw_data_base/nnUNet_raw_data/Task500_Ischemic_Stroke_Test/imagesTs/ \
+nnUNetv2_predict_from_modelfolder \
+               -i $nnUNet_raw/Task500_Ischemic_Stroke_Test/imagesTs/ \
                -o test_result/preliminary_phase/fold4 \
-               -t 12 \
-               -tr nnUNetTrainerV2_DDP \
-               -m 3d_fullres \
+               -m $nnUNet_results/nnUNet/3d_fullres/Task500_Ischemic_Stroke_Test/nnUNetTrainer__nnUNetPlans__3d_fullres \
                -f 4 \
-               -z \
-               --overwrite_existing \
-               --disable_postprocessing \
+               --save_probabilities \
+               --disable_tta \
                >/dev/null 2>&1
 
 # Suppressing the python scripts for postprocessing
@@ -123,14 +107,13 @@ model_2=test_result_recover/preliminary_phase/fold2
 model_3=test_result_recover/preliminary_phase/fold3
 model_4=test_result_recover/preliminary_phase/fold4
 
-python -m ensemble_predictions \
+nnUNetv2_ensemble \
        -f $model_0 \
           $model_1 \
           $model_2 \
           $model_3 \
           $model_4 \
        -o test_ensemble/ \
-       --npz \
        >/dev/null 2>&1
 
 # Suppressing thresholding final output and passing the raw_data_dir

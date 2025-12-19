@@ -4,6 +4,8 @@
 import os
 import shutil
 import subprocess
+import sys
+import re
 import nibabel as nib
 import tempfile
 import warnings
@@ -199,7 +201,10 @@ class IslesEnsemble:
 
     @staticmethod
     def run_command(command, cwd):
-        subprocess.run(command, shell=True, cwd=cwd)
+        # Suppress warnings in subprocess calls via environment variable
+        env = os.environ.copy()
+        env['PYTHONWARNINGS'] = 'ignore::DeprecationWarning,ignore::UserWarning'
+        subprocess.run(command, shell=True, cwd=cwd, env=env)
 
     def inference(self):
         # Prepare commands
@@ -215,13 +220,13 @@ class IslesEnsemble:
             # NVAUTO Command
             print_run('NVAUTO')
             path_nvauto = os.path.join(self.ensemble_path, 'src', 'NVAUTO/')
-            command_nvauto = f'python process.py --input_path {self.tmp_out_dir}'
+            command_nvauto = f'python -W ignore process.py --input_path {self.tmp_out_dir}'
             commands.append((command_nvauto, path_nvauto))
 
             # FACTORIZER Command
             print_run('SWAN')
             path_factorizer = os.path.join(self.ensemble_path, 'src', 'FACTORIZER/')
-            command_factorizer = f'python process.py --input_path {self.tmp_out_dir}'
+            command_factorizer = f'python -W ignore process.py --input_path {self.tmp_out_dir}'
             commands.append((command_factorizer, path_factorizer))
 
         # Execute commands based on parallelization flag
@@ -237,7 +242,7 @@ class IslesEnsemble:
     def ensemble(self):
         # Ensembling results
         path_voting = self.ensemble_path
-        command_voting = f'python ./src/majority_voting.py -i {self.tmp_out_dir} -o {self.output_path} '
+        command_voting = f'python -W ignore ./src/majority_voting.py -i {self.tmp_out_dir} -o {self.output_path} '
         subprocess.call(command_voting, shell=True, cwd=path_voting)
         # generate screenshots
 

@@ -1,10 +1,21 @@
 # Author: Ezequiel de la Rosa (ezequieldlrosa@gmail.com)
 # 03.04.2023
 
-import os
-import sys
 import argparse
+import os
 import subprocess
+import sys
+import warnings
+
+# Suppress third-party library warnings - set up before any imports
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='ignite')
+warnings.filterwarnings('ignore', category=UserWarning, module='monai.utils.module')
+warnings.filterwarnings('ignore', message='.*TorchScript.*functional optimizers.*')
+warnings.filterwarnings('ignore', message='.*pkg_resources.*deprecated.*')
+warnings.filterwarnings('ignore', message='.*torch.cuda.amp.autocast.*deprecated.*')
+
+# Also set environment variable to suppress warnings in subprocesses
+os.environ['PYTHONWARNINGS'] = 'ignore::DeprecationWarning:ignite,ignore::UserWarning:monai.utils.module'
 
 cwd = os.getcwd()
 sys.path.append(cwd)

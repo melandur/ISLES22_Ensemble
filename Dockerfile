@@ -1,4 +1,8 @@
 # Import image with python environment
+# CUDA version can be specified via build argument: --build-arg CUDA_VERSION=12
+# Default base image: CUDA 11.8
+# For CUDA 12: Change FROM to nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu20.04
+# For CUDA 13: Change FROM to nvidia/cuda:12.4.0-cudnn8-runtime-ubuntu22.04
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
 
 # Disable interactive installation
@@ -34,14 +38,24 @@ COPY weights ./weights
 COPY pyproject.toml .
 
 # Create a conda environment and install necessary packages
-RUN conda create --name isles_ensemble python=3.8.0 pip -y && \
+RUN conda create --name isles_ensemble python=3.12 pip -y && \
     conda clean -afy
 
 # Activate the environment and install packages
+# Map CUDA version to PyTorch index (default: 11.8)
+ARG CUDA_VERSION=11.8
 RUN /bin/bash -c "source activate isles_ensemble && \
     pip install uv && \
-    uv pip install --no-cache --extra-index-url https://download.pytorch.org/whl/cu113 \
-        torch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 && \
+    if [ \"$CUDA_VERSION\" = \"12\" ]; then \
+        PYTORCH_CUDA=\"cu121\"; \
+    elif [ \"$CUDA_VERSION\" = \"13\" ]; then \
+        PYTORCH_CUDA=\"cu131\"; \
+    else \
+        PYTORCH_CUDA=\"cu118\"; \
+    fi && \
+    echo \"Installing PyTorch with CUDA $CUDA_VERSION (index: \$PYTORCH_CUDA)\" && \
+    uv pip install --no-cache --extra-index-url https://download.pytorch.org/whl/\$PYTORCH_CUDA \
+        torch>=2.1.2 torchvision torchaudio && \
     uv pip install --no-cache -e ."
 
 # Copy the source code

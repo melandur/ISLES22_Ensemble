@@ -2,10 +2,41 @@
 set -e
 
 ENV_NAME="isles22_ensemble"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# More portable script directory detection (works with both bash and zsh)
+if [ -n "$BASH_SOURCE" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+fi
+
+# Parse command-line arguments
+CUDA_VERSION="${1:-11.8}"  # Default to 11.8 if not provided
+
+# Validate CUDA version
+if [[ ! "$CUDA_VERSION" =~ ^(11\.8|12|13)$ ]]; then
+    echo "Error: CUDA version must be 11.8, 12, or 13"
+    echo "Usage: $0 [CUDA_VERSION]"
+    echo "Example: $0 12"
+    exit 1
+fi
+
+# Map CUDA version to PyTorch index
+case "$CUDA_VERSION" in
+    11.8)
+        PYTORCH_CUDA="cu118"
+        ;;
+    12)
+        PYTORCH_CUDA="cu121"  # PyTorch uses cu121 for CUDA 12.x
+        ;;
+    13)
+        PYTORCH_CUDA="cu131"  # PyTorch uses cu131 for CUDA 13.x (or latest)
+        ;;
+esac
+
+echo "=== CUDA Version: $CUDA_VERSION (PyTorch index: $PYTORCH_CUDA) ==="
 
 echo "=== Creating conda environment: $ENV_NAME ==="
-conda create -n $ENV_NAME python=3.8.0 pip -y
+conda create -n $ENV_NAME python=3.12 pip -y
 
 echo "=== Activating environment ==="
 source "$(conda info --base)/etc/profile.d/conda.sh"
@@ -14,10 +45,10 @@ conda activate $ENV_NAME
 echo "=== Installing uv ==="
 pip install uv
 
-echo "=== Installing PyTorch with CUDA 11.3 via uv (PyTorch index) ==="
+echo "=== Installing PyTorch with CUDA $CUDA_VERSION via uv (PyTorch index: $PYTORCH_CUDA) ==="
 cd "$SCRIPT_DIR"
-uv pip install --extra-index-url https://download.pytorch.org/whl/cu113 \
-    torch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0
+uv pip install --extra-index-url https://download.pytorch.org/whl/$PYTORCH_CUDA \
+    torch>=2.1.2 torchvision torchaudio
 
 echo "=== Installing all other dependencies via uv ==="
 uv pip install -e .

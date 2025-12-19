@@ -27,20 +27,30 @@ cd ISLES22_Ensemble
 ```
 
 1.2) Create a conda environment and install dependencies. 
-**Note: Mandatory Python version 3.8.0 (!)**
+**Note: Python 3.10, 3.11, or 3.12 is required. Python 3.12 is recommended.**
 
+**Option A: Automated setup (recommended)**
 ```bash
-conda create --name isles_ensemble python=3.8.0 pip=23.3.1
-conda activate isles_ensemble
-conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c pytorch
-conda install -c conda-forge openslide-python
-conda install python=3.8.0 # important, since pytorch triggers the installation of later python versions
-pip install -e ./src/SEALS/
-pip install -e ./src/FACTORIZER/model/factorizer/
-pip install -e ./src/HD-BET
-pip install -r requirements.txt
+# Default CUDA 11.8
+./setup_env.sh
 
+# Or specify CUDA version (11.8, 12, or 13)
+./setup_env.sh 12
 ```
+
+**Option B: Manual installation**
+```bash
+conda create --name isles_ensemble python=3.12 pip -y
+conda activate isles_ensemble
+pip install uv
+uv pip install --extra-index-url https://download.pytorch.org/whl/cu118 torch>=2.1.2 torchvision torchaudio
+uv pip install -e .
+```
+
+**CUDA Version Support:**
+- CUDA 11.8 (default): `./setup_env.sh 11.8` or `./setup_env.sh`
+- CUDA 12: `./setup_env.sh 12`
+- CUDA 13: `./setup_env.sh 13`
 
 If successfully installed all required packages, you can follow  the steps below to download and place the checkpoints.
 

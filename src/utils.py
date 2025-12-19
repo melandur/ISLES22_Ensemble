@@ -12,6 +12,8 @@ import nibabel as nib
 import SimpleITK as sitk
 import os
 import requests
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 from matplotlib import pyplot as plt
 import numpy as np
 #import warnings
