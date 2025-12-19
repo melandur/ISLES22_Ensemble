@@ -169,13 +169,23 @@ class TestRegisterMri:
         """Test rigid image registration."""
         output_path = os.path.join(tmp_dir, 'registered.nii.gz')
         register_mri(sample_dwi_path, sample_flair_path, output_path, transformation='rigid')
-        mock_sitk_elastix.assert_called_once()
+        # Verify ElastixImageFilter was instantiated
+        assert mock_sitk_elastix['elastix'].Execute.called
+        # Verify ReadImage was called for both images
+        assert mock_sitk_elastix['read'].call_count == 2
+        # Verify WriteImage was called
+        assert mock_sitk_elastix['write'].called
     
     def test_register_mri_affine(self, sample_dwi_path, sample_flair_path, tmp_dir, mock_sitk_elastix):
         """Test affine image registration."""
         output_path = os.path.join(tmp_dir, 'registered.nii.gz')
         register_mri(sample_dwi_path, sample_flair_path, output_path, transformation='affine')
-        mock_sitk_elastix.assert_called_once()
+        # Verify ElastixImageFilter was instantiated
+        assert mock_sitk_elastix['elastix'].Execute.called
+        # Verify ReadImage was called for both images
+        assert mock_sitk_elastix['read'].call_count == 2
+        # Verify WriteImage was called
+        assert mock_sitk_elastix['write'].called
 
 
 class TestPropagateImage:
@@ -194,8 +204,8 @@ class TestPropagateImage:
         
         with patch('glob.glob') as mock_glob:
             mock_glob.return_value = [param_file]
-            with patch('SimpleITK.ReadParameterFile') as mock_read_param, \
-                 patch('SimpleITK.TransformixImageFilter') as mock_transformix:
+            with patch('src.utils.sitk.ReadParameterFile', create=True) as mock_read_param, \
+                 patch('src.utils.sitk.TransformixImageFilter', create=True) as mock_transformix:
                 mock_read_param.return_value = {'ResampleInterpolator': ['FinalLinearInterpolator']}
                 mock_transformix_instance = Mock()
                 mock_transformix_instance.GetResultImage.return_value = mock_sitk_read_write['image']

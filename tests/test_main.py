@@ -28,11 +28,22 @@ class TestMainArgumentParsing:
         with patch('sys.argv', test_args):
             with patch('os.path.exists', return_value=True):
                 with patch('os.makedirs'):
-                    with patch('src.isles22_ensemble.IslesEnsemble') as mock_ensemble:
+                    with patch('main.IslesEnsemble') as mock_ensemble:
                         mock_instance = Mock()
                         mock_ensemble.return_value = mock_instance
                         
-                        with patch('subprocess.run'):
+                        with patch('subprocess.run'), \
+                             patch('src.isles22_ensemble.convert_to_nii') as mock_convert, \
+                             patch('src.isles22_ensemble.get_img_shape', return_value=3), \
+                             patch('src.isles22_ensemble.nib.load') as mock_nib:
+                            # Create a mock NIfTI image with proper shape
+                            mock_img = Mock()
+                            mock_img.shape = (64, 64, 64)
+                            mock_nib.return_value = mock_img
+                            mock_convert.side_effect = [
+                                ('/app/data/test_dwi.nii.gz', True),
+                                ('/app/data/test_adc.nii.gz', True),
+                            ]
                             main()
                             
                             # Verify ensemble was called
@@ -56,11 +67,21 @@ class TestMainArgumentParsing:
         with patch('sys.argv', test_args):
             with patch('os.path.exists', return_value=True):
                 with patch('os.makedirs'):
-                    with patch('src.isles22_ensemble.IslesEnsemble') as mock_ensemble:
+                    with patch('main.IslesEnsemble') as mock_ensemble:
                         mock_instance = Mock()
                         mock_ensemble.return_value = mock_instance
                         
-                        with patch('subprocess.run'):
+                        with patch('subprocess.run'), \
+                             patch('src.isles22_ensemble.convert_to_nii') as mock_convert, \
+                             patch('src.isles22_ensemble.get_img_shape', return_value=3), \
+                             patch('src.isles22_ensemble.nib.load') as mock_nib:
+                            mock_img = Mock()
+                            mock_img.shape = (64, 64, 64)
+                            mock_nib.return_value = mock_img
+                            mock_convert.side_effect = [
+                                ('/app/data/test_dwi.nii.gz', True),
+                                ('/app/data/test_adc.nii.gz', True),
+                            ]
                             main()
                             
                             # Verify ensemble was called with correct arguments
@@ -84,11 +105,22 @@ class TestMainArgumentParsing:
         with patch('sys.argv', test_args):
             with patch('os.path.exists', return_value=True):
                 with patch('os.makedirs'):
-                    with patch('src.isles22_ensemble.IslesEnsemble') as mock_ensemble:
+                    with patch('main.IslesEnsemble') as mock_ensemble:
                         mock_instance = Mock()
                         mock_ensemble.return_value = mock_instance
                         
-                        with patch('subprocess.run'):
+                        with patch('subprocess.run'), \
+                             patch('src.isles22_ensemble.convert_to_nii') as mock_convert, \
+                             patch('src.isles22_ensemble.get_img_shape', return_value=3), \
+                             patch('src.isles22_ensemble.nib.load') as mock_nib:
+                            mock_img = Mock()
+                            mock_img.shape = (64, 64, 64)
+                            mock_nib.return_value = mock_img
+                            mock_convert.side_effect = [
+                                ('/app/data/test_dwi.nii.gz', True),
+                                ('/app/data/test_adc.nii.gz', True),
+                                ('/app/data/test_flair.nii.gz', True),
+                            ]
                             main()
                             
                             call_kwargs = mock_instance.predict_ensemble.call_args[1]
@@ -111,11 +143,21 @@ class TestMainFileValidation:
         with patch('sys.argv', test_args):
             with patch('os.path.exists', return_value=True):
                 with patch('os.makedirs'):
-                    with patch('src.isles22_ensemble.IslesEnsemble') as mock_ensemble:
+                    with patch('main.IslesEnsemble') as mock_ensemble:
                         mock_instance = Mock()
                         mock_ensemble.return_value = mock_instance
                         
-                        with patch('subprocess.run'):
+                        with patch('subprocess.run'), \
+                             patch('src.isles22_ensemble.convert_to_nii') as mock_convert, \
+                             patch('src.isles22_ensemble.get_img_shape', return_value=3), \
+                             patch('src.isles22_ensemble.nib.load') as mock_nib:
+                            mock_img = Mock()
+                            mock_img.shape = (64, 64, 64)
+                            mock_nib.return_value = mock_img
+                            mock_convert.side_effect = [
+                                ('/app/data/test_dwi.nii.gz', True),
+                                ('/app/data/test_adc.nii.gz', True),
+                            ]
                             # Should not raise
                             main()
     
@@ -223,11 +265,21 @@ class TestMainErrorHandling:
         with patch('sys.argv', test_args):
             with patch('os.path.exists', return_value=True):
                 with patch('os.makedirs') as mock_makedirs:
-                    with patch('src.isles22_ensemble.IslesEnsemble') as mock_ensemble:
+                    with patch('main.IslesEnsemble') as mock_ensemble:
                         mock_instance = Mock()
                         mock_ensemble.return_value = mock_instance
                         
-                        with patch('subprocess.run'):
+                        with patch('subprocess.run'), \
+                             patch('src.isles22_ensemble.convert_to_nii') as mock_convert, \
+                             patch('src.isles22_ensemble.get_img_shape', return_value=3), \
+                             patch('src.isles22_ensemble.nib.load') as mock_nib:
+                            mock_img = Mock()
+                            mock_img.shape = (64, 64, 64)
+                            mock_nib.return_value = mock_img
+                            mock_convert.side_effect = [
+                                ('/app/data/test_dwi.nii.gz', True),
+                                ('/app/data/test_adc.nii.gz', True),
+                            ]
                             main()
                             
                             # Verify output directory was created

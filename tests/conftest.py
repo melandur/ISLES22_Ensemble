@@ -4,11 +4,13 @@ Shared pytest fixtures and configuration.
 import os
 import tempfile
 import shutil
+import gc
 import pytest
 import numpy as np
 import nibabel as nib
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
+import matplotlib.pyplot as plt
 from tests.fixtures.sample_images import (
     create_test_dwi_image,
     create_test_adc_image,
@@ -17,6 +19,14 @@ from tests.fixtures.sample_images import (
     create_test_4d_dwi_image,
     create_test_prediction_array
 )
+
+
+@pytest.fixture(autouse=True)
+def cleanup_memory():
+    """Force garbage collection after each test to prevent memory accumulation."""
+    yield
+    gc.collect()
+    plt.close('all')  # Close any lingering matplotlib figures
 
 
 @pytest.fixture
@@ -155,7 +165,14 @@ def mock_requests_get():
 @pytest.fixture
 def mock_sitk_elastix():
     """Mock SimpleITK Elastix operations."""
-    with patch('SimpleITK.ElastixImageFilter') as mock_elastix_class:
+    # Patch in the namespace where SimpleITK is used (src.utils)
+    # Note: ElastixImageFilter may come from SimpleITK-SimpleElastix, so we patch it
+    # where it's accessed in the utils module with create=True
+    with patch('src.utils.sitk.ElastixImageFilter', create=True) as mock_elastix_class, \
+         patch('src.utils.sitk.ReadImage') as mock_read, \
+         patch('src.utils.sitk.WriteImage') as mock_write, \
+         patch('src.utils.sitk.GetDefaultParameterMap', create=True) as mock_get_param:
+        
         mock_elastix = Mock()
         mock_elastix_class.return_value = mock_elastix
         
@@ -164,7 +181,19 @@ def mock_sitk_elastix():
         mock_elastix.GetResultImage.return_value = mock_result
         mock_elastix.Execute.return_value = None
         
-        yield mock_elastix
+        # Mock ReadImage to return a mock image
+        mock_image = Mock()
+        mock_read.return_value = mock_image
+        
+        # Mock GetDefaultParameterMap to return a parameter map
+        mock_get_param.return_value = {'Transformation': ['RigidTransform']}
+        
+        yield {
+            'elastix': mock_elastix,
+            'read': mock_read,
+            'write': mock_write,
+            'get_param': mock_get_param
+        }
 
 
 @pytest.fixture

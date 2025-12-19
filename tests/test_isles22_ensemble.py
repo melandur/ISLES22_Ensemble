@@ -170,8 +170,9 @@ class TestIslesEnsembleLoadImages:
         ensemble.input_adc_path = sample_adc_path
         ensemble.input_flair_path = None
         ensemble.tmp_out_dir = tmp_dir
+        ensemble.skull_strip = False  # Initialize skull_strip attribute
         
-        with patch('src.utils.convert_to_nii') as mock_convert:
+        with patch('src.isles22_ensemble.convert_to_nii') as mock_convert:
             mock_convert.side_effect = [
                 (sample_dwi_path, True),  # DWI already NIfTI
                 (sample_adc_path, True),  # ADC already NIfTI
@@ -190,8 +191,9 @@ class TestIslesEnsembleLoadImages:
         ensemble.input_adc_path = sample_adc_path
         ensemble.input_flair_path = sample_flair_path
         ensemble.tmp_out_dir = tmp_dir
+        ensemble.skull_strip = False  # Initialize skull_strip attribute
         
-        with patch('src.utils.convert_to_nii') as mock_convert:
+        with patch('src.isles22_ensemble.convert_to_nii') as mock_convert:
             mock_convert.side_effect = [
                 (sample_dwi_path, True),
                 (sample_adc_path, True),
@@ -289,30 +291,38 @@ class TestIslesEnsembleCopyOutputClean:
     def test_copy_output_clean_save_team_outputs(self, tmp_dir):
         """Test saving team outputs."""
         ensemble = IslesEnsemble()
-        ensemble.tmp_out_dir = tmp_dir
-        ensemble.output_path = os.path.join(tmp_dir, 'output')
+        # Use separate directories for tmp and output to avoid deletion issues
+        ensemble.tmp_out_dir = os.path.join(tmp_dir, 'tmp_work')
+        ensemble.output_path = os.path.join(tmp_dir, 'final_output')
         ensemble.save_team_outputs = True
         ensemble.results_mni = False
         ensemble.keep_tmp_files = False
         
         os.makedirs(ensemble.tmp_out_dir, exist_ok=True)
+        os.makedirs(ensemble.output_path, exist_ok=True)
         team_output_dir = os.path.join(ensemble.tmp_out_dir, 'output')
         os.makedirs(team_output_dir, exist_ok=True)
+        # Create a test file in the output directory
+        with open(os.path.join(team_output_dir, 'test.txt'), 'w') as f:
+            f.write('test')
         
         ensemble.copy_output_clean()
         # Team outputs should be copied
         assert os.path.exists(os.path.join(ensemble.output_path, 'output_teams'))
+        assert os.path.exists(os.path.join(ensemble.output_path, 'output_teams', 'test.txt'))
     
     def test_copy_output_clean_results_mni(self, tmp_dir):
         """Test saving MNI results."""
         ensemble = IslesEnsemble()
-        ensemble.tmp_out_dir = tmp_dir
-        ensemble.output_path = os.path.join(tmp_dir, 'output')
+        # Use separate directories for tmp and output to avoid deletion issues
+        ensemble.tmp_out_dir = os.path.join(tmp_dir, 'tmp_work')
+        ensemble.output_path = os.path.join(tmp_dir, 'final_output')
         ensemble.save_team_outputs = False
         ensemble.results_mni = True
         ensemble.keep_tmp_files = False
         
         os.makedirs(ensemble.tmp_out_dir, exist_ok=True)
+        os.makedirs(ensemble.output_path, exist_ok=True)
         mni_dir = os.path.join(ensemble.tmp_out_dir, 'mni')
         os.makedirs(mni_dir, exist_ok=True)
         

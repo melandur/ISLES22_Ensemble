@@ -134,10 +134,13 @@ class IslesEnsemble:
     def copy_output_clean(self):
         # Copy results
         if self.save_team_outputs:
+            output_teams_path = os.path.join(self.output_path, 'output_teams')
+            if os.path.exists(output_teams_path):
+                shutil.rmtree(output_teams_path)
             shutil.copytree(os.path.join(self.tmp_out_dir, 'output'),
-                            os.path.join(self.output_path, 'output_teams'))
+                            output_teams_path)
         if self.results_mni:
-            os.mkdir(os.path.join(self.output_path, 'output_mni'))
+            os.makedirs(os.path.join(self.output_path, 'output_mni'), exist_ok=True)
             for nii_file in glob.glob(os.path.join(self.tmp_out_dir, 'mni', '*.nii.gz')):
                 shutil.copyfile(nii_file, os.path.join(self.output_path, 'output_mni', nii_file.split('/')[-1]))
 
