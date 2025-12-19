@@ -118,3 +118,11 @@ dmypy.json
 
 # pyre
 .pyre/
+
+# folders
+weights/FACTORIZER/
+weights/NVAUTO/
+weights/SEALS/
+results/
+example_test/
+src/SEALS/data/
